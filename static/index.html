@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html ng-app="AwesomeChat" lang="en">
+    <head>
+    <meta charset="UTF=8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width = device-width, initial-scale = 1">
+    <title>Super Awesome Chat Room!</title>
+    
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+     
+    <style>
+        .jumbotron{
+            background-color:#003399;
+            color:black;
+        }
+    </style> 
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.4/socket.io.js"></script>
+    <script src="js/controller.js"></script>
+    </head>   
+    <body>
+        
+        
+        
+        <!-- Main container -->
+        <div class="container" ng-controller="ChatController">
+  
+        <row>
+            <div class="container">
+            <nav class="navbar navbar-default">
+              <div class="container-fluid">
+                <div class="navbar-header">
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                      <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                  <a class="navbar-brand" href="#">Super Awesome Chat!</a>
+                </div>
+        
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                  <ul class="nav navbar-nav">
+                <li><form ng-submit="login()"><button type="submit" class="btn btn-link" ng-disabled="loggedIn">Log in</button></form></li>
+               <!-- <li><form method="LINK" action="create.html"><button type="submit" class="btn btn-link" >Create Account</button></form></li>-->
+                <li>
+                <div class="dropdown">
+                      <button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown" ng-disabled="loggedIn">Create Account
+                      <span class="caret"></span></button>
+                        
+                        <ul class="dropdown-menu" style="padding:10px">
+                            
+                            <form ng-submit="newUser()" name="create" role="create"> 
+                            
+                            <li><div class="form-group"><label for="newUserName">User Name:</label><input type="text" class="form-control" name="newUserName" placeholder="User Name"></div></li>
+                            <li><div class="form-group"><label for="firstPW">Password:</label><input type="password" class="form-control" name="firstPW" placeholder="Password"></div></li>
+                            <li><div class="form-group"><label for="secondPW">Password:</label><input type="password" class="form-control" name="secondPW" placeholder="Re-enter Password"></div></li>
+                            <li><h4>Rooms to join</h4></li>
+                            <li><input type="checkbox" name="awesomeCheck" id="awesomeCheck">&nbsp<label for="awesomeCheck">Awesome People</label></li>
+                            <li><input type="checkbox" name="coolCheck"  id="coolCheck">&nbsp<label for="coolCheck">Cool People</label></li>
+                            <li><input type="checkbox" name="regularCheck"  id="regularCheck">&nbsp<label for="regularCheck">Regular People</label></li>
+                            
+                            <li><button type="submit" class="btn btn-primary">Create Account</button></li>
+                            
+                        </form>
+                        <div style="visibility:hidden" id="failCreate"><p style="color:red" ng-bind="failMessage" /></div>
+                      </ul>
+                </div></li>
+
+                
+                <li><form ng-submit="logout()"><button type="submit" class="btn btn-link" ng-disabled="!loggedIn">Log Out</button></form></li>
+                
+      
+                
+                  </ul>
+                  <form ng-submit="sear()" class="navbar-form navbar-right" name="search" role="search">
+                    <div class="form-group">
+              <input type="text" class="form-control" placeholder="Search Room Chat Log" name="searchQ">
+                </div>
+                <button type="submit" class="btn btn-default" ng-disabled="!loggedIn">Search</button>
+                  </form>
+                  
+                  
+                    </div><!-- /.navbar-collapse -->
+                  </div><!-- /.container-fluid -->
+                </nav>
+                
+            </div>
+            </row>
+            <row>
+            <div class="jumbotron col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                
+                <div class="well-justin" style="visibility:hidden" id="login">
+                <table class="table">
+                            <div class="form-group"><form ng-submit="submitLog()">
+                              <tr><td><input type="text"  ng-model="username" class="form-control width=40%" placeholder="User Name"></td>
+                              <td><input type="password"  ng-model="password" class="form-control width=40%" placeholder="Password"></td>
+                               <td><button type="submit" class="btn btn-primary center-block padding-right:0 padding-left:0">Log In</button></td>
+                                </form>
+                            </div>
+                            </tr></table>
+                </div>
+                <div style="visibility:hidden" id="fail"><p style="color:red"> Could not log in.</p></div>
+                
+                <div class="well col-lg-2 col-md-2 col-sm-3 col-xs-12 background-color:#FFFFFF">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <td class="text-center text-bold">ROOMS</td>
+                    </thead>
+                    <form name="newRoomName" ng-submit="changeR()"><input type="hidden" name="roomChange" />
+                    <tr><td><button type="submit" class="btn btn-link" onclick="setNewRoom('lobby')" ng-disabled="!loggedIn">Lobby</button></td></tr>
+                    <tr><td><button type="submit" class="btn btn-link" onclick="setNewRoom('awesomepeople')" ng-disabled="!loggedIn">Awesome People</button></td></tr>
+                    <tr><td><button type="submit" class="btn btn-link" onclick="setNewRoom('coolpeople')" ng-disabled="!loggedIn">Cool People</button></td></tr>
+                    <tr><td><button type="submit" class="btn btn-link" onclick="setNewRoom('regularpeople')" ng-disabled="!loggedIn">Regular People</button></td></tr></form>
+                    
+                    
+                </table>
+                
+                
+                
+                </div>
+                <div class="well well-lg col-lg-7 col-md-7 col-sm-6 col-xs-12 background-color:#FFFFFF">
+                    <div class="row">
+                        
+                        <div class="container" data-spy="scroll" id="msgpane" style="height:400px; overflow:auto; background-color:#FFFFFF;">
+                              
+                          <p ng-repeat="msg in messages track by $index">
+                              <b ng-bind="msg.name"></b>:&nbsp;
+                              <span ng-bind="msg.text"></span>
+                              
+                          </p>
+                          
+                          </body>
+                        </div>
+                        
+                    </div>
+                    
+                    <form>
+                    <input type="hidden" id="loggedIn" ng-value="false" />
+                     </form>
+                    <div class="row">
+                        <div class="well col-sm col-md-12 col-sm-12 col-xs-12 center background-color:#FFFFFF">
+                            <table class="table">
+                            <div class="form-group"><form ng-submit="send()">
+                              <tr><td><input type="text"  ng-model="text" class="form-control width=90%" placeholder="..."></td>
+                               <td><button type="submit" class="btn btn-primary center-block padding-right:0 padding-left:0" ng-disabled="!loggedIn">Chat</button></td>
+                                </form>
+                            </div>
+                            </tr></table>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="well col-lg-3 col-md-3 col-sm-3 col-xs-12 background-color:#FFFFFF">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <td class="text-center text-bold">USERS ONLINE</td>
+                    </thead>
+                    <tr ng-repeat="user in users"><td ng-bind="user"></td></tr>
+                    
+                    
+                </table>
+                
+                <div class="well col-sm col-md-12 col-sm-12 col-xs-12 center background-color:#FFFFFF" style="visibility:hidden" id="searchRes">
+                    <h4> SEARCH RESULTS</h4>
+                <table class="table table-bordered table-striped">
+                    <tr ng-repeat="res in searchRes track by $index">
+                        <td ng-bind="res.name"></td><td ng-bind="res.text"></td>
+                    </tr> 
+                </table>
+                </div>
+                
+                </div>
+                
+            </div><!-- End jumbotron -->
+            </row>
+        <!-- End main container -->    
+        </div>
+        
+        
+        
+    
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/scale.fix.js"></script>
+    </body>
+</html>
