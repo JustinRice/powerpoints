@@ -13,6 +13,8 @@ app.secret_key = os.urandom(24).encode('hex')
 socketio = SocketIO(app)
 
 
+
+
 def connectToDB():
   connectionString = 'dbname=session user=searcher password=search host=localhost'
   print connectionString
