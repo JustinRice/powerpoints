@@ -52,10 +52,10 @@
                 <form ng-submit="teams()" class="navbar-form navbar-right" id="teamName">
                     <button type="submit" class="btn btn-danger btn-sm">View a team: </button>
                         <select class="form control" id="pickteam">
-                            <option>James Monroe</option>
-                            <option>Massaponax</option>
-                            <option>Courtland</option>
-                            <option>Mountain View</option>
+                            {% for tn in teamnames %}
+                            {{tn}}
+                            <option>{{tn}}</option>
+                            {% endfor %}
                         </select>
                 </form>
                 </div>

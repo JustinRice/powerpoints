@@ -3,10 +3,9 @@ PowerPointsApp.controller('PointsController', function($scope){
     
     var socket=io.connect('https://'+document.domain+':'+location.port+'/points');
     
-    socket.on('redirect', function (newPage){
-        console.log("made it");
-        console.log(newPage);
-        window.location = newPage.url;
+    socket.on('teamredirect', function (params){
+        var fixedURL = params[0].url + "?tn=" + params[1];
+        window.location = fixedURL;
     });
     
     
