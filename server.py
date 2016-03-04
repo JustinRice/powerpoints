@@ -45,16 +45,78 @@ def getTeamData(team):
     data['points'] = str(results[5])
     data['max'] = str(results[6])
     data['min'] = str(results[7])
+    wins = 0
+    losses = 0
     games = []
     i = 8
     while i < 20:
-        games.append(results[i])
+        thisgame = {}
+        if results[i] is not None:
+            thisgame = getGameInfo(team, results[i])
+            if thisgame["winloss"] == 'W':
+                wins += 1
+            elif thisgame["winloss"] == "L":
+                losses += 1
+        else:
+            thisgame = makeBye()
+        thisgame['week'] = i-7
+        games.append(thisgame)
         i += 1
     data['games'] = games
+    data['record'] = str(wins) + "-" + str(losses)
     return data
+    
+def getGameInfo(team, gameNumber):
+    data = {}
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("SELECT homeid, awayid, homescore, awayscore, day, dist from games where id=%s",(gameNumber,))
+    results = cur.fetchone()
+    cur.execute("SELECT id from teams where school=%s",(team,))
+    thisTeamNum = cur.fetchone()[0]
+    isHome = False
+    loc = "at"
+    teamToIdentify = int(results[0])
+    if int(results[0]) == thisTeamNum:
+        isHome = True
+        loc = "vs."
+        teamToIdentify = int(results[1])
+    cur.execute("SELECT school from teams where id=%s",(teamToIdentify,))
+    otherTeam = cur.fetchone()[0]
+    finalscore = ""
+    winloss = ""
+    score = ""
+    if results[2] is not None:
+        if int(results[2]) > int(results[3]):
+            score = str(results[2]) + "-" + str(results[3])
+            if isHome:
+                winloss = "W"
+            else:
+                winloss = "L"
+        else:
+            score = str(results[3]) + "-" + str(results[2])
+            if isHome:
+                winloss = "L"
+            else:
+                winloss = "W"
+    data["loc"]=loc
+    data["opp"]=otherTeam
+    data["score"]=score
+    data["winloss"]=winloss
+    return data
+    
+def makeBye():
+    data = {}
+    data["loc"] = ""
+    data["opp"] = "Bye"
+    data["score"] = ""
+    data["winloss"] = ""
+    return data
+        
   
 @app.route('/')
 def mainIndex():
+    getGameInfo("Highland Springs", 1)
     session['teamToLoad'] = ''
     if len(teamNames) == 0:
         getTeamNames()

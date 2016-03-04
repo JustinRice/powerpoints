@@ -3,19 +3,51 @@
 {% block content %}
     
     <row>
+    <div class="container-fluid col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
+        
+        <div class="container-fluid col-lg-10 col-md-10 col-sm-12 col-xs-12">
+            <h2>{{teamData['school']}} {{teamData['mascot']}}</h2>
+            <p><b>District: </b> {{teamData['district']}}
+            <b>Conference: </b> {{teamData['conf']}}<br>
+            <b>Record: </b> {{teamData['record']}}
+            <b>Current Points: </b> {{teamData['points']}}
+            <b>Maximum: </b> {{teamData['max']}}
+            <b>Minimum: </b> {{teamData['min']}}
+        </div>
+        
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
+    </div>
+    </row>
+    <row>
+    <div class="container-fluid col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
     
-    <h2>{{teamData['school']}} {{teamData['mascot']}}</h2>
+        <div class="container-fluid col-lg-10 col-md-10 col-sm-12 col-xs-12">
+            <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Week</th>
+                <th></th>
+                <th>Score</th>
+                <th>W/L</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for game in teamData['games'] %}
+                <tr>
+                    <td>{{game['week']}}</td>
+                    <td>{{game['loc']}} {{game['opp']}}</td>
+                    <td>{{game['score']}}</td>
+                    <td>{{game['winloss']}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
     
-    <p><b>District: </b> {{teamData['district']}}
-    <b>Conference: </b> {{teamData['conf']}}
-    <b>Current Points: </b> {{teamData['points']}}
-    <b>Maximum: </b> {{teamData['max']}}
-    <b>Minimum: </b> {{teamData['min']}}
-    
-    
-    
-    
-    </p>
-    
+    </div>
     </row>
 {% endblock %}
