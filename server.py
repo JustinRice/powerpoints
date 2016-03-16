@@ -13,6 +13,7 @@ app.secret_key = os.urandom(24).encode('hex')
 socketio = SocketIO(app)
 
 teamNames = []
+regionNames = []
 
 
 def connectToDB():
@@ -30,6 +31,16 @@ def getTeamNames():
     for tn in results:
         teamNames.append(tn[0])
     teamNames.sort()
+    
+def getRegionNames():
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("SELECT distinct region from conferences")
+    results = cur.fetchall()
+    for rn in results:
+        regionNames.append(rn[0])
+    regionNames.sort(reverse=True)
+    print(regionNames)
     
 def getTeamData(team):
     data = {}
@@ -105,6 +116,14 @@ def getGameInfo(team, gameNumber):
     data["winloss"]=winloss
     return data
     
+def getStandings(confName):
+    # select * from teams join conferences on teams.confid=conferences.id where conferences.region='5A North';
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("SELECT teams.school, teams.wins, teams.losses, teams.pmax, teams.pmin from teams join conferences on teams.confid=conferences.id where conferences.region=%s",(confName,))
+    results = cur.fetchall()
+    print(results)
+    
 def makeBye():
     data = {}
     data["loc"] = ""
@@ -120,7 +139,10 @@ def mainIndex():
     session['teamToLoad'] = ''
     if len(teamNames) == 0:
         getTeamNames()
-    return render_template('index.html', teamnames=teamNames)
+    if len(regionNames) == 0:
+        getRegionNames()
+    getStandings("5A North")
+    return render_template('index.html', teamnames=teamNames, regionnames=regionNames)
     
 @app.route('/team', methods=['GET'])
 def new_view():
