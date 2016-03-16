@@ -1,3 +1,5 @@
+DROP DATABASE powerpoints;
+
 CREATE DATABASE powerpoints;
 \c powerpoints;
 
@@ -38,6 +40,25 @@ CREATE TABLE IF NOT EXISTS games(
   dist char(1) not null,
   primary key(id)
 );
+
+CREATE TABLE IF NOT EXISTS conferences(
+  id SERIAL not null,
+  region text not null,
+  primary key(id)
+);
+
+insert into conferences (region) values ('6A South, Conf. 1-2'),('6A South, Conf. 1-2'),
+('6A South, Conf. 3-4'),('6A South, Conf. 3-4'),('6A North'),('6A North'),('6A North'),('6A North'),
+('5A South, Conf. 9-10'),('5A South, Conf. 9-10'),('5A South, Conf. 11-12'),('5A South, Conf. 11-12'),
+('5A North'),('5A North'),('5A North'),('5A North'),
+('4A East, Conf. 17-18'),('4A East, Conf. 17-18'),('4A East, Conf. 19-20'),('4A East, Conf. 19-20'),
+('4A West'),('4A West'),('4A West'),('4A West'),
+('3A East Conf. 25-27'),('3A East, Conf. 26-28'),('3A East, Conf. 25-27'),('3A East, Conf. 26-28'),
+('2A East'),('2A East'),('2A East'),('2A East'),
+('2A West'),('2A West'),('2A West'),('2A West'),
+('1A East'),('1A East'),('1A East'),('1A East'),
+('1A West'),('1A West'),('1A West'),('1A West');
+
 
 insert into teams (school, mascot, class, tracked, district, confID) values ('Albemarle', 'Patriot', 5, 'Y', 'Jefferson', 16);
 insert into teams (school, mascot, class, tracked, district, confID) values ('Annandale', 'Atoms', 6, 'Y', 'District 7', 7);
