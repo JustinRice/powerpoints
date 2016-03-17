@@ -120,9 +120,21 @@ def getStandings(confName):
     # select * from teams join conferences on teams.confid=conferences.id where conferences.region='5A North';
     db = connectToDB()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("SELECT teams.school, teams.wins, teams.losses, teams.pmax, teams.pmin from teams join conferences on teams.confid=conferences.id where conferences.region=%s",(confName,))
+    cur.execute("SELECT teams.school, teams.wins, teams.losses, teams.points, teams.pmax, teams.pmin from teams join conferences on teams.confid=conferences.id where conferences.region=%s order by teams.points",(confName,))
     results = cur.fetchall()
-    print(results)
+    stand = []
+    stand.append(confName)
+    stand.append([])
+    for row in results:
+        rowDict = {}
+        rowDict['name'] = row[0]
+        rowDict['wins'] = row[1]
+        rowDict['losses'] = row[2]
+        rowDict['points'] = row[3]
+        rowDict['max'] = row[4]
+        rowDict['min'] = row[5]
+        stand[1].append(rowDict)
+    return stand
     
 def makeBye():
     data = {}
@@ -150,7 +162,13 @@ def new_view():
         getTeamNames()
     teamName = request.args.get('tn')
     teamData = getTeamData(teamName)
-    return render_template('team.html', teamnames=teamNames, teamData=teamData)
+    return render_template('team.html', teamnames=teamNames, regionnames=regionNames, teamData=teamData)
+    
+@app.route('/stand', methods=['GET'])
+def new_standview():
+    regionName = request.args.get('rn')
+    stanData = getStandings(regionName)
+    return render_template('standings.html', teamnames=teamNames, regionnames=regionNames, stanData=stanData)
        
 @socketio.on('connect', namespace='/points')
 def makeConnection(): 
@@ -162,6 +180,11 @@ def viewTeam(teamName):
     params = [{'url':'/team'},teamName]
    # emit('teamredirect', teamName, {'url': '/team'})
     emit('teamredirect', params)
+    
+@socketio.on('viewStand', namespace='/points')
+def viewStand(regionName):
+    params = [{'url':'/stand'},regionName]
+    emit('standredirect', params)
  
 
 # start the server

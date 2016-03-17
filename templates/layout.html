@@ -43,10 +43,9 @@
                 </ul>
                 
                 <div class="form-group">
-                <form ng-submit="asgd()" class="navbar-form navbar-right" name="search" role="search">
-                    
+                <form ng-submit="standings()" class="navbar-form navbar-right" id="regionName">
                     <button type="submit" class="btn btn-danger btn-sm">View standings: </button>
-                        <select class="form control" id="pickleague">
+                        <select class="form control" id="pickregion">
                             {% for rn in regionnames %}
                             {{rn}}
                             <option>{{rn}}</option>

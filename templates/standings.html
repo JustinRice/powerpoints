@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    
+    <row>
+    <div class="container-fluid col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
+        
+        <div class="container-fluid col-lg-10 col-md-10 col-sm-12 col-xs-12">
+            <h2>{{stanData[0]}} </h2>
+        </div>
+        
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
+    </div>
+    </row>
+    <row>
+    <div class="container-fluid col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
+    
+        <div class="container-fluid col-lg-10 col-md-10 col-sm-12 col-xs-12">
+            <table class="table table-bordered table-striped table-responsive ">
+            <thead>
+            <tr>
+                <th>Team</th>
+                <th>W</th>
+                <th>L</th>
+                <th>Points</th>
+                <th>Max</th>
+                <th>Min</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for team in stanData[1] %}
+                <tr>
+                    <td>{{team['name']}}</td>
+                    <td>{{team['wins']}}</td>
+                    <td>{{team['losses']}}</td>
+                    <td>{{team['points']}}</td>
+                    <td>{{team['max']}}</td>
+                    <td>{{team['min']}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        
+        <div class="container-fluid col-lg-1 col-md-1 col-sm-0 col-xs-0"></div>
+    
+    </div>
+    </row>
+{% endblock %}
