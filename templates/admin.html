@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    
+    <row>
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3" id="leftCol">
+                <ul class="list-group>" id="sidebar">
+                    <li class="list-group-item"><form ng-submit="commit()" name="update" role="update" id="update"> 
+                    <button type="submit" class="btn btn-danger btn-sm">Commit Changes</button>
+                    </form></li>
+                <li class="list-group-item">An item.</li>
+                <li class="list-group-item">An item.</li>
+                </ul>
+                
+            
+        </div>
+        <div class="container-fluid col-lg-9 col-md-9 col-sm-9 col-xs-9">
+            This will be the main window
+        </div>
+    </div>
+    </row>
+{% endblock %}
