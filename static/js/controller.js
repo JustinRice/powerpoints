@@ -20,8 +20,13 @@ PowerPointsApp.controller('PointsController', function($scope){
     socket.on('logInFail', function(){
         var elem=document.getElementById('failLog');
         elem.style.visibility = 'visible';
-        console.log('Failed');
     });
+    
+    socket.on('upComp', function(){
+        var elem=document.getElementById('upComp');
+        elem.style.visibility = 'visible';
+    });
+    
     
     $scope.teams = function teams(){
       var teampick = document.getElementById("pickteam");

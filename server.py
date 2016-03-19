@@ -52,7 +52,6 @@ def getRegionNames():
 def updateRecords():
     db = adminConnect()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    print(teamNames)
     for team in teamNames:
         cur.execute("SELECT week1, week2, week3, week4, week5, week6, week7, week8, week9, week10, week11, week12 from teams where school=%s",(team,))
         results = cur.fetchone()
@@ -70,6 +69,69 @@ def updateRecords():
         query = ("update teams set wins="+ str(wins) +", losses=" + str(losses) + " where school='" + team + "';")
         cur.execute(query)
         db.commit()
+        
+def getGamesList(team, cur):
+    gamesList = []
+    i = 1
+    while i <= 12:
+        query=("select week"+str(i) + " from teams where school='" + team + "';")
+        cur.execute(query)
+        results = cur.fetchone()
+        if str(results[0]) != "None":
+            gamesList.append(results[0])
+        i += 1
+    return gamesList
+    
+def getOpponentsList(team, gamesList, cur):
+    oppList = []
+    for game in gamesList:
+        query=("select school from teams where id=(select homeid from games where id=" + str(game) + ") union select school from teams where id=(select awayid from games where id=" + str(game) + ");")
+        cur.execute(query)
+        results=cur.fetchall()
+        for name in results:
+            if name != team:
+                oppList.append(name)
+    return oppList
+        
+def calculatePoints():
+    db = adminConnect()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    for team in teamNames:
+        query="select class from teams where school='" + team + "';"
+        cur.execute(query)
+        teamClass = cur.fetchone()[0]
+        gamesList = getGamesList(team, cur)
+        totalPoints = 0
+        gamesPlayed = 0
+        for game in gamesList:
+            info = getGameInfo(team, game)
+            if (info["winloss"] == 'W') or (info["winloss"] == "L"):
+                gamesPlayed += 1
+                mult = 1
+                if info["winloss"] == 'W':
+                    mult = 2
+                query="select class from teams where school='" + info["opp"] + "';"
+                cur.execute(query)
+                clss = cur.fetchone()[0]
+                if teamClass > clss:
+                    if info["dist"] == 'Y':
+                        totalPoints += 2*(teamClass - clss)
+                    else:
+                        totalPoints += (teamClass - clss)
+                query="select wins from teams where school='" + info["opp"] + "';"
+                cur.execute(query)
+                wins = cur.fetchone()[0]
+                if info["winloss"] == 'W':
+                    totalPoints += (2*clss) + 14 + (wins * 2)
+                else:
+                    totalPoints += (2*clss) + 2 + wins
+        if gamesPlayed > 0:
+            pp = (totalPoints * 1.0) / gamesPlayed
+            query = "update teams set points=" + str(pp) + " where school='" + team + "';"
+            cur.execute(query)
+            db.commit()
+        print("Updated " + team)
+        
     
 def getTeamData(team):
     data = {}
@@ -112,6 +174,7 @@ def getGameInfo(team, gameNumber):
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute("SELECT homeid, awayid, homescore, awayscore, day, dist from games where id=%s",(gameNumber,))
     results = cur.fetchone()
+    dist=results[5]
     cur.execute("SELECT id from teams where school=%s",(team,))
     thisTeamNum = cur.fetchone()[0]
     isHome = False
@@ -143,13 +206,14 @@ def getGameInfo(team, gameNumber):
     data["opp"]=otherTeam
     data["score"]=score
     data["winloss"]=winloss
+    data["dist"]=dist
     return data
     
 def getStandings(confName):
     # select * from teams join conferences on teams.confid=conferences.id where conferences.region='5A North';
     db = connectToDB()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("SELECT teams.school, teams.wins, teams.losses, teams.points, teams.pmax, teams.pmin from teams join conferences on teams.confid=conferences.id where conferences.region=%s order by teams.points",(confName,))
+    cur.execute("SELECT teams.school, teams.wins, teams.losses, teams.points, teams.pmax, teams.pmin from teams join conferences on teams.confid=conferences.id where conferences.region=%s order by teams.points desc",(confName,))
     results = cur.fetchall()
     stand = []
     stand.append(confName)
@@ -232,6 +296,9 @@ def admin(un, pw):
 @socketio.on('commit', namespace='/points')
 def commit():
     updateRecords()
+    calculatePoints()
+    print("Update complete.")
+    #emit('upComp')
  
 
 # start the server
