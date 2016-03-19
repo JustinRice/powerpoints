@@ -47,7 +47,6 @@ def getRegionNames():
     for rn in results:
         regionNames.append(rn[0])
     regionNames.sort(reverse=True)
-    print(regionNames)
     
 def updateRecords():
     db = adminConnect()
@@ -236,40 +235,76 @@ def makeBye():
     data["score"] = ""
     data["winloss"] = ""
     return data
-        
-  
+
+def getWeekGames(week):
+    games = []
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    query = "select distinct week" + str(week) + " from teams where week" + str(week) + " > 0;"
+    cur.execute(query)
+    results = cur.fetchall()
+    for game in results:
+        query = "select homeid, awayid, homescore, awayscore from games where id="+str(game[0])
+        cur.execute(query)
+        gameData = cur.fetchone()
+        query = "select school from teams where id=" + str(gameData[0]) + " or id=" + str(gameData[1]) + ";"
+        cur.execute(query)
+        names = cur.fetchall()
+        thisGame = {}
+        thisGame["home"] = names[0][0]
+        thisGame["away"] = names[1][0]
+        if gameData[2] == None:
+            thisGame["homeScore"]=""
+            thisGame["awayScore"]=""
+        else:
+            thisGame["homeScore"] = gameData[2]
+            thisGame["awayScore"] = gameData[3]
+        games.append(thisGame)
+    return games
+
 @app.route('/')
 def mainIndex():
-    getGameInfo("Highland Springs", 1)
     session['teamToLoad'] = ''
     if len(teamNames) == 0:
         getTeamNames()
     if len(regionNames) == 0:
         getRegionNames()
-    getStandings("5A North")
     return render_template('index.html', teamnames=teamNames, regionnames=regionNames)
     
 @app.route('/team', methods=['GET'])
 def new_view():
     if len(teamNames) == 0:
         getTeamNames()
+    if len(regionNames) == 0:
+        getRegionNames()
     teamName = request.args.get('tn')
     teamData = getTeamData(teamName)
     return render_template('team.html', teamnames=teamNames, regionnames=regionNames, teamData=teamData)
     
 @app.route('/stand', methods=['GET'])
 def new_standview():
+    if len(teamNames) == 0:
+        getTeamNames()
+    if len(regionNames) == 0:
+        getRegionNames()
     regionName = request.args.get('rn')
     stanData = getStandings(regionName)
     return render_template('standings.html', teamnames=teamNames, regionnames=regionNames, stanData=stanData)
     
 @app.route('/admin')
 def adminPage():
+    if len(teamNames) == 0:
+        getTeamNames()
+    if len(regionNames) == 0:
+        getRegionNames()
     return render_template('admin.html', teamnames=teamNames, regionnames=regionNames)
        
 @socketio.on('connect', namespace='/points')
 def makeConnection(): 
-    print('connected')   
+    if len(teamNames) == 0:
+        getTeamNames()
+    if len(regionNames) == 0:
+        getRegionNames() 
     
 @socketio.on('viewTeam', namespace='/points')
 def viewTeam(teamName):
@@ -299,7 +334,6 @@ def commit():
     calculatePoints()
     print("Update complete.")
     #emit('upComp')
- 
 
 # start the server
 if __name__ == '__main__':
