@@ -23,6 +23,13 @@ def connectToDB():
   except:
     print("Can't connect to database")
     
+def adminConnect():
+    connectionString = 'dbname=powerpoints user=aduser password=aduser host=localhost'
+    try:
+        return psycopg2.connect(connectionString)
+    except:
+        print("Can't connect to database")
+    
 def getTeamNames():
     db = connectToDB()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -41,6 +48,28 @@ def getRegionNames():
         regionNames.append(rn[0])
     regionNames.sort(reverse=True)
     print(regionNames)
+    
+def updateRecords():
+    db = adminConnect()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    print(teamNames)
+    for team in teamNames:
+        cur.execute("SELECT week1, week2, week3, week4, week5, week6, week7, week8, week9, week10, week11, week12 from teams where school=%s",(team,))
+        results = cur.fetchone()
+        wins = 0
+        losses = 0
+        i = 0
+        while i < 12:
+            if results[i] is not None:
+                thisgame = getGameInfo(team, results[i])
+                if thisgame["winloss"] == 'W':
+                    wins += 1
+                elif thisgame["winloss"] == "L":
+                    losses += 1
+            i += 1
+        query = ("update teams set wins="+ str(wins) +", losses=" + str(losses) + " where school='" + team + "';")
+        cur.execute(query)
+        db.commit()
     
 def getTeamData(team):
     data = {}
@@ -171,7 +200,7 @@ def new_standview():
     return render_template('standings.html', teamnames=teamNames, regionnames=regionNames, stanData=stanData)
     
 @app.route('/admin')
-def admin():
+def adminPage():
     return render_template('admin.html', teamnames=teamNames, regionnames=regionNames)
        
 @socketio.on('connect', namespace='/points')
@@ -199,6 +228,10 @@ def admin(un, pw):
         emit('adminredirect',{'url':'/admin'})
     else:
         emit('logInFail')
+        
+@socketio.on('commit', namespace='/points')
+def commit():
+    updateRecords()
  
 
 # start the server

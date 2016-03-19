@@ -35,6 +35,10 @@ PowerPointsApp.controller('PointsController', function($scope){
       socket.emit('viewStand', rname);
     };
     
+    $scope.commit = function commit(){
+        socket.emit('commit');  
+    };
+    
     $scope.admin = function admin(){
         var uname = document.forms["adm"].elements["un"].value;
         var pw =    document.forms["adm"].elements["pw"].value;
