@@ -13,6 +13,15 @@ PowerPointsApp.controller('PointsController', function($scope){
         window.location = fixedURL;
     });
     
+    socket.on('adminredirect', function(params){
+       window.location = params.url; 
+    });
+    
+    socket.on('logInFail', function(){
+        var elem=document.getElementById('failLog');
+        elem.style.visibility = 'visible';
+        console.log('Failed');
+    });
     
     $scope.teams = function teams(){
       var teampick = document.getElementById("pickteam");
@@ -25,6 +34,16 @@ PowerPointsApp.controller('PointsController', function($scope){
       var rname = regionpick.options[regionpick.selectedIndex].value;
       socket.emit('viewStand', rname);
     };
+    
+    $scope.admin = function admin(){
+        var uname = document.forms["adm"].elements["un"].value;
+        var pw =    document.forms["adm"].elements["pw"].value;
+        //console.log(uname);
+        //console.log(pw);
+        socket.emit('admin', uname, pw);
+    };
+    
+    
     
     
 });

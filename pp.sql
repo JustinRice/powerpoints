@@ -50,6 +50,14 @@ CREATE TABLE IF NOT EXISTS conferences(
   primary key(id)
 );
 
+CREATE TABLE IF NOT EXISTS users(
+  name text not null,
+  password text not null
+);
+
+create extension pgrypto;
+insert into users (name, password) values ('admin',crypt('admin',gen_salt('bf')));
+
 insert into conferences (region) values ('6A South, Conf. 1-2'),('6A South, Conf. 1-2'),
 ('6A South, Conf. 3-4'),('6A South, Conf. 3-4'),('6A North'),('6A North'),('6A North'),('6A North'),
 ('5A South, Conf. 9-10'),('5A South, Conf. 9-10'),('5A South, Conf. 11-12'),('5A South, Conf. 11-12'),

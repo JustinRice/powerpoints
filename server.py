@@ -169,6 +169,10 @@ def new_standview():
     regionName = request.args.get('rn')
     stanData = getStandings(regionName)
     return render_template('standings.html', teamnames=teamNames, regionnames=regionNames, stanData=stanData)
+    
+@app.route('/admin')
+def admin():
+    return render_template('admin.html', teamnames=teamNames, regionnames=regionNames)
        
 @socketio.on('connect', namespace='/points')
 def makeConnection(): 
@@ -185,6 +189,16 @@ def viewTeam(teamName):
 def viewStand(regionName):
     params = [{'url':'/stand'},regionName]
     emit('standredirect', params)
+    
+@socketio.on('admin', namespace='/points')
+def admin(un, pw):
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from users where name = %s and password=crypt(%s, password)",(un,pw))
+    if cur.fetchone():
+        emit('adminredirect',{'url':'/admin'})
+    else:
+        emit('logInFail')
  
 
 # start the server
