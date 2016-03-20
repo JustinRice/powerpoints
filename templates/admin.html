@@ -8,15 +8,54 @@
                     <li class="list-group-item"><form ng-submit="commit()" name="update" role="update" id="update"> 
                     <button type="submit" class="btn btn-danger btn-sm">Commit Changes</button>
                     </form>
-                    <div style="visibility:hidden" id="upComp"><p style="color:red"><p>Update Complete</p></div></li>
-                <li class="list-group-item">An item.</li>
-                <li class="list-group-item">An item.</li>
+                    <div style="visibility:hidden" id="upComp"><p style="color:red"><p>Updating ... </p></div></li>
+                <li class="list-group-item">
+                    <form ng-submit="teamScheduleAdmin()" id="teamSked">
+                    <button type="submit" class="btn btn-danger btn-sm">Edit a team: </button><br><br>
+                        <select class="form control" id="pickTeamSchedule">
+                            {% for tn in teamnames %}
+                            {{tn}}
+                            <option>{{tn}}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </li>
+                <li class="list-group-item">
+                    <form ng-submit="weekSchedule()" id="weekSked">
+                    <button type="submit" class="btn btn-danger btn-sm">Edit a week: </button><br><br>
+                        <select class="form control" id="weekSchedule">
+                            Week 1<option>Week 1</option>
+                            Week 2<option>Week 2</option>
+                            Week 3<option>Week 3</option>
+                            Week 4<option>Week 4</option>
+                            Week 5<option>Week 5</option>
+                            Week 6<option>Week 6</option>
+                            Week 7<option>Week 7</option>
+                            Week 8<option>Week 8</option>
+                            Week 9<option>Week 9</option>
+                            Week 10<option>Week 10</option>
+                            Week 11<option>Week 11</option>
+                            Week 12<option>Week 12</option>
+                        </select>
+                    </form>
+                </li>
                 </ul>
                 
             
         </div>
-        <div class="container-fluid col-lg-9 col-md-9 col-sm-9 col-xs-9">
-            This will be the main window
+        <div class="container-fluid col-lg-9 col-md-9 col-sm-9 col-xs-9" id="displayarea">
+            <row>
+            <form ng-submit="scoresUpdate()" id="scores">
+            <div id="butholder"> 
+               
+            </div>
+            </row> 
+            <row>
+            <div id="tablecontainer">
+                
+            </div>
+            </row>
+            </form>
         </div>
     </div>
     </row>

@@ -129,7 +129,6 @@ def calculatePoints():
             query = "update teams set points=" + str(pp) + " where school='" + team + "';"
             cur.execute(query)
             db.commit()
-        print("Updated " + team)
         
     
 def getTeamData(team):
@@ -167,6 +166,50 @@ def getTeamData(team):
     data['record'] = str(wins) + "-" + str(losses)
     return data
     
+def getTeamAdmin(teamName):
+    data = getTeamData(teamName)
+    gameList = []
+    for game in data['games']:
+        if game["opp"] != "Bye":
+            oppName = game["opp"]
+            winScore = ""
+            losScore = ""
+            if game["score"] != "":
+                winScore = game["score"].split("-")[0]
+                losScore = game["score"].split("-")[1]
+            homeTeam = ""
+            awayTeam = ""
+            homeScore = ""
+            awayScore = ""
+            if game["loc"] == "at":
+                homeTeam = oppName
+                awayTeam = teamName
+                if game["score"] != "":
+                    if game["winloss"] == 'W':
+                        awayScore = winScore
+                        homeScore = losScore
+                    else:
+                        awayScore = losScore
+                        homeScore = winScore
+            else:
+                homeTeam = teamName
+                awayTeam = oppName
+                if game["score"] != "":
+                    if game["winloss"] == 'W':
+                        awayScore = losScore
+                        homeScore = winScore
+                    else:
+                        awayScore = winScore
+                        homeScore = losScore
+            finalGame = []
+            finalGame.append(homeTeam)
+            finalGame.append(awayTeam)
+            finalGame.append(homeScore)
+            finalGame.append(awayScore)
+            finalGame.append(game["gameid"])
+            gameList.append(finalGame)
+    return gameList
+
 def getGameInfo(team, gameNumber):
     data = {}
     db = connectToDB()
@@ -206,6 +249,7 @@ def getGameInfo(team, gameNumber):
     data["score"]=score
     data["winloss"]=winloss
     data["dist"]=dist
+    data["gameid"]=gameNumber
     return data
     
 def getStandings(confName):
@@ -247,20 +291,36 @@ def getWeekGames(week):
         query = "select homeid, awayid, homescore, awayscore from games where id="+str(game[0])
         cur.execute(query)
         gameData = cur.fetchone()
-        query = "select school from teams where id=" + str(gameData[0]) + " or id=" + str(gameData[1]) + ";"
+        query = "select school from teams where id=" + str(gameData[0])
         cur.execute(query)
         names = cur.fetchall()
-        thisGame = {}
-        thisGame["home"] = names[0][0]
-        thisGame["away"] = names[1][0]
+        thisGame = []
+        thisGame.append(names[0][0])
+        query = "select school from teams where id=" + str(gameData[1])
+        cur.execute(query)
+        names = cur.fetchall()
+        thisGame.append(names[0][0])
+        
         if gameData[2] == None:
-            thisGame["homeScore"]=""
-            thisGame["awayScore"]=""
+            thisGame.append("")
+            thisGame.append("")
         else:
-            thisGame["homeScore"] = gameData[2]
-            thisGame["awayScore"] = gameData[3]
+            thisGame.append(gameData[2])
+            thisGame.append(gameData[3])
+        thisGame.append(game)
         games.append(thisGame)
     return games
+    
+def updateAScore(gameId, hscore, ascore):
+    db = adminConnect()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    query = "select homescore, awayscore from games where id=" + gameId
+    cur.execute(query)
+    game = cur.fetchone()
+    if (game[0] == None) or (game[0] == None) or (int(game[0]) != int(hscore)) or (int(game[1]) != int(ascore)):
+        query = "update games set homescore=" + hscore + ", awayscore=" + ascore + " where id=" + gameId
+        cur.execute(query)
+        db.commit()
 
 @app.route('/')
 def mainIndex():
@@ -305,6 +365,22 @@ def makeConnection():
         getTeamNames()
     if len(regionNames) == 0:
         getRegionNames() 
+        
+@socketio.on('fetchweek', namespace='/points')
+def fetchweek(weekNum):
+    data = getWeekGames(weekNum)
+    params = []
+    params.append(data)
+    params.append(int(weekNum))
+    emit('displayweek', params)
+    
+@socketio.on('fetchTeam', namespace='/points')
+def fetchteam(teamName):
+    data = getTeamAdmin(teamName)
+    params = []
+    params.append(data)
+    params.append(teamName)
+    emit('displayTeamAdmin',params)
     
 @socketio.on('viewTeam', namespace='/points')
 def viewTeam(teamName):
@@ -332,8 +408,16 @@ def admin(un, pw):
 def commit():
     updateRecords()
     calculatePoints()
-    print("Update complete.")
-    #emit('upComp')
+    emit('adminredirect',{'url':'/admin'})
+
+@socketio.on('updateWeekScores', namespace='/points')
+def updateWeekScores(scoresAr):
+    for line in scoresAr:
+        gameId = line[0]
+        hscore = line[1]
+        ascore = line[2]
+        updateAScore(gameId, hscore, ascore)
+    emit('adminredirect',{'url':'/admin'})
 
 # start the server
 if __name__ == '__main__':
