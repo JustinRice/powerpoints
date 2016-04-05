@@ -14,8 +14,48 @@ socketio = SocketIO(app)
 
 teamNames = []
 regionNames = []
+allgames = {}
+allteams = {}
+weeklist = ["week1", "week2", "week3", "week4", "week5", "week6", "week7", "week8", "week9", "week10", "week11", "week12"]
 
+def getAllTeams():
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    for team in teamNames:
+        cur.execute("SELECT id, class, gamesremaining, points, wins, losses, week1, week2, week3, week4, week5, week6, week7, week8, week9, week10, week11, week12 from teams where school=%s",(team,))
+        line = cur.fetchone()
+        allteams[line[0]] = {"name":team,"class":line[1],"remain":line[2], "points":line[3],"wins":line[4],"losses":line[5],
+                            "week1":line[6],"week2":line[7],"week3":line[8],"week4":line[9],"week5":line[10],"week6":line[11],
+                            "week7":line[12],"week8":line[13],"week9":line[14],"week10":line[15],"week11":line[16],"week12":line[17]}
+    
+def getAllGames():
+    db = connectToDB()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    for team in allteams:
+        for week in weeklist:
+            if (allteams[team][week] not in allgames.keys()) and (allteams[team][week]):
+                allgames[allteams[team][week]] = {}
+    for game in allgames.keys():
+         cur.execute("SELECT homeid, awayid, homescore, awayscore, dist from games where id=%s",(game,))
+         line = cur.fetchone()
+         played = "N"
+         if line[2]:
+             played = "Y"
+         allgames[game] = {"homeid":line[0],"awayid":line[1],"homescore":line[2],"awayscore":line[3],"played":played,"dist":line[4]}
 
+def calcTeamMax(teamList, gameList, teamId):
+    curPoints = float(teamList[teamId]["points"]) * (int(teamList[teamId]["wins"]) * int(teamList[teamId]["losses"]))
+    for week in weeklist:
+        if teamList[teamId][week]:
+            thisGame = gameList[teamList[teamId][week]]
+            if thisGame["played"] == "Y":
+                pass
+            else:
+                pass
+             
+         
+       
+        
 def connectToDB():
   connectionString = 'dbname=powerpoints user=pp password=pp host=localhost'
   try:
@@ -57,6 +97,7 @@ def updateRecords():
         wins = 0
         losses = 0
         i = 0
+        remaining = 0
         while i < 12:
             if results[i] is not None:
                 thisgame = getGameInfo(team, results[i])
@@ -64,8 +105,10 @@ def updateRecords():
                     wins += 1
                 elif thisgame["winloss"] == "L":
                     losses += 1
+                else:
+                    remaining += 1
             i += 1
-        query = ("update teams set wins="+ str(wins) +", losses=" + str(losses) + " where school='" + team + "';")
+        query = ("update teams set wins="+ str(wins) +", losses=" + str(losses) + ", gamesremaining=" + str(remaining) + " where school='" + team + "';")
         cur.execute(query)
         db.commit()
         
@@ -330,6 +373,15 @@ def mainIndex():
     if len(regionNames) == 0:
         getRegionNames()
     return render_template('index.html', teamnames=teamNames, regionnames=regionNames)
+
+@app.route('/scenario')
+def scenSession():
+    print("I'm here!")
+    session['uuid']=uuid.uuid1()
+    getAllTeams()
+    getAllGames()
+    return render_template('scenario.html', uid=session['uuid'])
+    
     
 @app.route('/team', methods=['GET'])
 def new_view():
@@ -393,6 +445,12 @@ def viewTeam(teamName):
 def viewStand(regionName):
     params = [{'url':'/stand'},regionName]
     emit('standredirect', params)
+    
+@socketio.on('scenClick', namespace='/points')
+def scenario():
+    print("Made it in here!")
+    params=[{'url':'/scenario'}]
+    emit('scenarioredirect', params)
     
 @socketio.on('admin', namespace='/points')
 def admin(un, pw):

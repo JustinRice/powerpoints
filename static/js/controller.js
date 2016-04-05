@@ -13,6 +13,11 @@ PowerPointsApp.controller('PointsController', function($scope){
         window.location = fixedURL;
     });
     
+    socket.on('scenarioredirect', function (params){
+        console.log("And now I'm here!");
+        window.location = params[0].url;
+    });
+    
     socket.on('adminredirect', function(params){
        window.location = params.url; 
     });
@@ -232,6 +237,12 @@ PowerPointsApp.controller('PointsController', function($scope){
         var teampick = document.getElementById("pickTeamSchedule")
         var teamName = teampick.options[teampick.selectedIndex].value;
         socket.emit('fetchTeam', teamName);
+    };
+    
+    $scope.viewScen = function scenario(){
+      console.log("Scenario button");
+      socket.emit('scenClick');
+        
     };
     
     $scope.scoresUpdate = function scoresUpdate(){

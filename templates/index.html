@@ -22,5 +22,9 @@
         <img class="img-responsive block-center" src="{{ url_for('static', filename='images/jmmvist.jpg') }}" />
     </div>
     
+     <form ng-submit="viewScen()" name="scen" role="scen" id="scen"> 
+        <li><button type="submit" class="btn btn-danger">Scenario</button></li>
+     </form>
+    
     </row>
 {% endblock %}
