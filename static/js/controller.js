@@ -193,13 +193,6 @@ PowerPointsApp.controller('PointsController', function($scope){
        
     });
     
-    
-    
-    
-    
-    
-    
-    
     $scope.teams = function teams(){
       var teampick = document.getElementById("pickteam");
       var tname = teampick.options[teampick.selectedIndex].value;
@@ -217,6 +210,14 @@ PowerPointsApp.controller('PointsController', function($scope){
         elem.style.visibility = 'visible';
         socket.emit('commit');  
     };
+    
+    $scope.upmax = function upmax(){
+        var elem=document.getElementById('upComp');
+        elem.style.visibility = 'visible';
+        socket.emit('updatepmax');  
+    };
+    
+    
     
     $scope.admin = function admin(){
         var uname = document.forms["adm"].elements["un"].value;

@@ -8,7 +8,12 @@
                     <li class="list-group-item"><form ng-submit="commit()" name="update" role="update" id="update"> 
                     <button type="submit" class="btn btn-danger btn-sm">Commit Changes</button>
                     </form>
-                    <div style="visibility:hidden" id="upComp"><p style="color:red"><p>Updating ... </p></div></li>
+                    
+                    <li class="list-group-item"><form ng-submit="upmax()" name="update" role="update" id="update"> 
+                    <button type="submit" class="btn btn-danger btn-sm">Update Max</button>
+                    </form>
+                    
+                    <li><div style="visibility:hidden" id="upComp"><p style="color:red"><p>Updating ... </p></div></li>
                 <li class="list-group-item">
                     <form ng-submit="teamScheduleAdmin()" id="teamSked">
                     <button type="submit" class="btn btn-danger btn-sm">Edit a team: </button><br><br>
