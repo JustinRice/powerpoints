@@ -356,7 +356,6 @@ def calcTeamMin(teamList, gameList, teamId):
     maxPoints = maxPoints * 100
     finPoints = int(maxPoints)
     finPoints = (finPoints * 1.0) / 100
-    print finPoints
     return finPoints
              
        
@@ -791,10 +790,14 @@ def updatepmin():
     getAllGames()
     for teamid in allteams.keys():
         minP = calcTeamMin(allteams, allgames, teamid)
-        if minP > 40:
-            minP = 34.3
         db = adminConnect()
         cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        query = "select pmax from teams where id=" + str(teamid) + ";"
+        cur.execute(query)
+        result = cur.fetchone()
+        mintest = result[0]
+        if minP > mintest:
+            minP = mintest / 4
         query = "update teams set pmin=" + str(minP) + " where id=" + str(teamid) + ";"
         cur.execute(query)
         db.commit()
