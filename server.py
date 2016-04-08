@@ -97,7 +97,9 @@ def calcTeamMax(teamList, gameList, teamId):
             gameCp[game]["homescore"] = 0
             gameCp[game]["awayscore"] = 1
             gameCp[game]["played"] = 'Y'
-            teamCp[gameCp[game]["homeid"]]["losses"] += 1
+            if "homeid" in gameCp[game].keys():
+                if gameCp[game]["homeid"] in teamCp.keys():
+                    teamCp[gameCp[game]["homeid"]]["losses"] += 1
             teamCp[teamId]["wins"] += 1
         else:
             playedHome = False
@@ -186,8 +188,157 @@ def calcTeamMax(teamList, gameList, teamId):
                 else:
                     maxPoints += (2*oppClass) + 2 + oppWins
             else:
-                oppClass = teamCp[thisGame["homeid"]]["class"]
-                oppWins = teamCp[thisGame["homeid"]]["wins"]
+                if thisGame["homeid"] in teamCp.keys():
+                    oppClass = teamCp[thisGame["homeid"]]["class"]
+                    oppWins = teamCp[thisGame["homeid"]]["wins"]
+                else:
+                    oppClass = 3
+                    oppWins = 0
+                if homeWon:
+                    maxPoints += (2*oppClass) + 2 + oppWins
+                else:
+                    maxPoints += (2*oppClass) + 14 + (oppWins * 2)
+            if thisClass > oppClass:
+                if thisGame["dist"] == 'Y':
+                    maxPoints += 2*(thisClass - oppClass)
+                else:
+                    maxPoints += (thisClass - oppClass)
+    
+    totalGames = teamCp[teamId]["wins"] + teamCp[teamId]["losses"]
+    if not (totalGames > 0):
+        totalGames = 10
+    maxPoints = (maxPoints * 1.0)/ totalGames  
+    maxPoints = maxPoints * 100
+    finPoints = int(maxPoints)
+    finPoints = (finPoints * 1.0) / 100
+    print finPoints
+    return finPoints
+    
+    
+def calcTeamMin(teamList, gameList, teamId):
+    curPoints = float(teamList[teamId]["points"]) * (int(teamList[teamId]["wins"]) * int(teamList[teamId]["losses"]))
+    gaopp = getGamesThatMatter(teamId, teamList, gameList)
+    gtm = gaopp[0]
+    opps = gaopp[1]
+    teamCp = {}
+    gameCp = {}
+    
+    for key in teamList.keys():
+        teamCp[key] = teamList[key]
+    for key in gameList.keys():
+        gameCp[key] = gameList[key]
+    thisClass = teamCp[teamId]["class"]    
+    for game in gtm:
+        home = gameCp[game]["homeid"]
+        away = gameCp[game]["awayid"]
+        if home==teamId:
+            gameCp[game]["homescore"] = 0
+            gameCp[game]["awayscore"] = 1
+            gameCp[game]["played"] = 'Y'
+            if gameCp[game]["awayid"] in teamCp.keys():
+                teamCp[gameCp[game]["awayid"]]["wins"] += 1
+            teamCp[teamId]["losses"] += 1
+        elif away==teamId:
+            gameCp[game]["homescore"] = 1
+            gameCp[game]["awayscore"] = 0
+            gameCp[game]["played"] = 'Y'
+            if "homeid" in gameCp[game].keys():
+                if gameCp[game]["homeid"] in teamCp.keys():
+                    teamCp[gameCp[game]["homeid"]]["wins"] += 1
+            teamCp[teamId]["losses"] += 1
+        else:
+            playedHome = False
+            playedRoad = False
+            if gameCp[game]["awayid"] in opps:
+                playedRoad = True
+            if gameCp[game]["homeid"] in opps:
+                playedHome = True    
+            if playedHome and not playedRoad:
+                gameCp[game]["homescore"] = 0
+                gameCp[game]["awayscore"] = 1
+                gameCp[game]["played"] = 'Y'
+                teamCp[gameCp[game]["homeid"]]["losses"] += 1
+            if playedRoad and not playedHome:
+                gameCp[game]["homescore"] = 1
+                gameCp[game]["awayscore"] = 0
+                gameCp[game]["played"] = 'Y'
+                teamCp[gameCp[game]["awayid"]]["losses"] += 1  
+    for game in gtm:
+        if gameCp[game]["played"] == 'N':
+            gameToFix = gameCp[game]
+            oppH = gameCp[game]["homeid"]
+            oppR = gameCp[game]["awayid"]
+            beatHome = False
+            beatRoad = False
+            homeId = gameCp[game]["homeid"]
+            awayId = gameCp[game]["awayid"]
+            for week in weeklist:
+                if teamCp[teamId][week]:
+                    thisGame = gameCp[teamCp[teamId][week]]
+                    if (thisGame["homeid"] == oppH and thisGame["awayid"] == teamId) or (thisGame["awayid"] == oppH and thisGame["homeid"] == teamId):
+                        wasHome = False
+                        if thisGame["homeid"] == teamId:
+                            wasHome = True
+                        homeWon = False
+                        if thisGame["homescore"] > thisGame["awayscore"]:
+                            homeWon = True
+                        if wasHome and homeWon:
+                            beatHome = True
+                        elif (not wasHome and not homeWon):
+                            beatHome = True
+                    if (thisGame["homeid"] == oppR and thisGame["awayid"] == teamId) or (thisGame["awayid"] == oppR and thisGame["homeid"] == teamId):
+                        wasHome = False
+                        if thisGame["homeid"] == teamId:
+                            wasHome = True
+                        homeWon = False
+                        if thisGame["homescore"] > thisGame["awayscore"]:
+                            homeWon = True
+                        if wasHome and homeWon:
+                            beatRoad = True
+                        elif (not wasHome and not homeWon):
+                            beatRoad = True
+            if (beatHome and beatRoad) or (beatHome and not beatRoad) or (not beatHome and not beatRoad):
+                gameToFix["homescore"] = 0
+                gameToFix["awayscore"] = 1
+                gameToFix["played"] = 'Y'
+                teamCp[homeId]["losses"] += 1
+                teamCp[awayId]["wins"] += 1
+            else:
+                gameToFix["homescore"] = 1
+                gameToFix["awayscore"] = 0
+                gameToFix["played"] = 'Y'
+                teamCp[awayId]["losses"] += 1
+                teamCp[homeId]["wins"] += 1
+    maxPoints = 0
+    for week in weeklist:
+        if teamCp[teamId][week]:
+            thisGame = gameCp[teamCp[teamId][week]]
+            isHome = False
+            if thisGame["homeid"] == teamId:
+                isHome = True
+            homeWon = False
+            if thisGame["homescore"] > thisGame["awayscore"]:
+                homeWon = True
+            oppClass = ""
+            oppWins = ""
+            if isHome:
+                if thisGame["awayid"] in teamCp.keys():
+                    oppClass = teamCp[thisGame["awayid"]]["class"]
+                    oppWins = teamCp[thisGame["awayid"]]["wins"]
+                else:
+                    oppClass = 3
+                    oppWins = 0
+                if homeWon:
+                    maxPoints += (2*oppClass) + 14 + (oppWins * 2)
+                else:
+                    maxPoints += (2*oppClass) + 2 + oppWins
+            else:
+                if thisGame["homeid"] in teamCp.keys():
+                    oppClass = teamCp[thisGame["homeid"]]["class"]
+                    oppWins = teamCp[thisGame["homeid"]]["wins"]
+                else:
+                    oppClass = 3
+                    oppWins = 0
                 if homeWon:
                     maxPoints += (2*oppClass) + 2 + oppWins
                 else:
@@ -626,10 +777,27 @@ def updatepmax():
     getAllGames()
     for teamid in allteams.keys():
         maxP = calcTeamMax(allteams, allgames, teamid)
+        if maxP > 40:
+            maxP = 34.3
         db = adminConnect()
         cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
         query = "update teams set pmax=" + str(maxP) + " where id=" + str(teamid) + ";"
         cur.execute(query)
+        db.commit()
+        
+@socketio.on('updatepmin', namespace='/points')
+def updatepmin():
+    getAllTeams()
+    getAllGames()
+    for teamid in allteams.keys():
+        minP = calcTeamMin(allteams, allgames, teamid)
+        if minP > 40:
+            minP = 34.3
+        db = adminConnect()
+        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        query = "update teams set pmin=" + str(minP) + " where id=" + str(teamid) + ";"
+        cur.execute(query)
+        db.commit()
     
 
 @socketio.on('updateWeekScores', namespace='/points')

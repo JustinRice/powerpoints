@@ -217,6 +217,12 @@ PowerPointsApp.controller('PointsController', function($scope){
         socket.emit('updatepmax');  
     };
     
+    $scope.upmin = function upmax(){
+        var elem=document.getElementById('upComp');
+        elem.style.visibility = 'visible';
+        socket.emit('updatepmin');  
+    };
+    
     
     
     $scope.admin = function admin(){
